@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 // use latest solidity version at time of writing, need not worry about overflow and underflow
-
+import 'hardhat/console.sol';
 /// @title ERC20 Contract 
 
 contract Pandacoin {
@@ -27,6 +27,8 @@ contract Pandacoin {
     }
 
     function transfer(address _to, uint256 _value) external returns (bool success) {
+        console.log ('Sender balance is %s', balances[msg.sender]);
+        console.log ('Trying to send the %s Pandacoins to %s.', _value,_to);
         require(balances[msg.sender] >= _value, 'Not enough Tokens');
         _transfer(msg.sender, _to, _value);
         return true;
