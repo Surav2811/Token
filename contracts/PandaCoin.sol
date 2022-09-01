@@ -27,7 +27,7 @@ contract Pandacoin {
     }
 
     function transfer(address _to, uint256 _value) external returns (bool success) {
-        console.log ('Sender balance is %s', balances[msg.sender]);
+        console.log ('Owner balance is %s', balances[msg.sender]);
         console.log ('Trying to send the %s Pandacoins to %s.', _value,_to);
         require(balances[msg.sender] >= _value, 'Not enough Tokens');
         _transfer(msg.sender, _to, _value);
@@ -43,19 +43,43 @@ contract Pandacoin {
     }
 
     function approve(address _spender, uint256 _value) external returns (bool) {
-        require(_spender != address(0));
+        require(_spender != address(0), 'The spender cannot be the Owner of the account');
+        require(balances[msg.sender] >= _value, 'Insufficient Tokens');
         allowance[msg.sender][_spender] = _value;
+        console.log ('The approved amount is %s', allowance[msg.sender][_spender]);
         emit Approval(msg.sender, _spender, _value);
+        return true;
+    }
+    
+    function approvedTransfer(address owner, address client, uint256 _value) external returns (bool) {
+        require(msg.sender != address(0), 'The spender cannot be the Owner of the account');
+        allowance[msg.sender][owner] = _value;
+
+        console.log('The allowance amount is %s',allowance[owner][msg.sender]);
+        console.log('The transaction amount is %s', _value);
+        require( _value <= allowance[owner][msg.sender], 'Outside Allowance limit');
+        _transfer(owner, client, _value );
+        allowance [owner][msg.sender] -= _value;
         return true;
     }
 
 
+    function allowedApprove (address spender) external view returns (uint) {
+       return allowance[msg.sender][spender];
+    }
+
+
     function transferFrom(address _from, address _to, uint256 _value) external returns (bool) {
-        require(_value <= balances[_from]);
-        require(_value <= allowance[_from][msg.sender]);
+        console.log('Account Balance : %s',balances[msg.sender]);
+        require(_value <= balances[_from],'Not enough Tokens');
+        require(_value <= allowance[_from][msg.sender],'Outside Allowance limit');
         allowance[_from][msg.sender] = allowance[_from][msg.sender] - (_value);
         _transfer(_from, _to, _value);
         return true;
+    }
+
+    function allowedApproval (address _from) external view returns (uint) {
+        return allowance[_from] [msg.sender];
     }
 
     function balanceOf (address account) external view returns (uint) {
